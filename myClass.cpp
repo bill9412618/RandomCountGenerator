@@ -64,3 +64,16 @@ void myClass::updateStatisticData(int num){
 float myClass::percentageOf(int num){
     return (numCounter[num]*100)/totalNumGenerated;
 }
+
+void myClass::readLastNumAndWriteToFile(string filename)
+{
+    int lastNum = lastOneHundredNums.back();
+
+     __int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+    ofstream myFile;
+    myFile.open(filename, std::ofstream::out | std::ofstream::app);
+    string outputContent = "timeStamp: "+to_string(now)+" lastNum: "+to_string(lastNum);
+    myFile<<outputContent<<endl;
+    myFile.close();
+}

@@ -17,6 +17,7 @@ public:
     void updateLastOneHundredRecord(int num);
     list<int> getLastOneHundredRecord();
     float percentageOf(int num);
+    void readLastNumAndWriteToFile(string filename);
 
 private:
     list<int> lastOneHundredNums;

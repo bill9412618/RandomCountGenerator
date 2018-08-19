@@ -32,5 +32,8 @@ int main(int argc, char** argv) {
     for(int i=1;i<=5;i++){
         cout<<i<<":"<<MyClass.percentageOf(i)<<endl;
     }
+
+    cout<<"Test the method readLastNumAndWriteToFile()----------------------------------"<<endl;
+    MyClass.readLastNumAndWriteToFile("test.txt"); 
     return 0;
 }
