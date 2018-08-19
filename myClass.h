@@ -16,6 +16,15 @@ typedef struct{
   int randNum;
 }node;
 
+class mycomparison
+{
+public:
+		bool operator()(const node& lhs, const node& rhs) const
+		{
+			return lhs.timeStamp>rhs.timeStamp;
+		}
+};
+
 class myClass {
 public:
     myClass();
@@ -37,7 +46,11 @@ private:
     map<int,double> numPercentage;
     double totalNumGenerated;
     std::mutex mutexForQueue;
-    queue<node> dataQueue;
+    std::mutex mutexForRandNumGenerator;
+    //queue<node> dataQueue;
+    priority_queue<node,std::vector<node>,mycomparison> dataQueue;
+
+
     //std::mutex mutexForCountingThreadNum;
     //int producerThreadNum;
 };

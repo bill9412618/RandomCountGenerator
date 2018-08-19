@@ -14,11 +14,13 @@ myClass::myClass() {
 }
 
 int myClass::randNumGenerator(){
+    std::unique_lock<std::mutex> locker1(mutexForRandNumGenerator);
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, 19);
     int randNum;
     randNum = dis(gen);
+    locker1.unlock();
 
     int finalResult;
     if(randNum<10){
@@ -42,9 +44,9 @@ int myClass::randNumGenerator(){
     node newNode;
     newNode.timeStamp = std::chrono::system_clock::now().time_since_epoch()/std::chrono::milliseconds(1);
     newNode.randNum = finalResult;
-    std::unique_lock<mutex> locker(mutexForQueue);
+    std::unique_lock<mutex> locker2(mutexForQueue);
     dataQueue.push(newNode);
-    locker.unlock();
+    locker2.unlock();
 
     return finalResult;
 }
@@ -88,7 +90,8 @@ void myClass::readLastNumAndWriteToFile(string filename)
 */
     std::unique_lock<std::mutex> locker(mutexForQueue);
     if(!dataQueue.empty()){
-      node tmp = dataQueue.front();
+      //node tmp = dataQueue.front();
+      node tmp = dataQueue.top();
       dataQueue.pop();
 
       ofstream myFile;
