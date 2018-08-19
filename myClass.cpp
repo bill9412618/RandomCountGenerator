@@ -39,6 +39,13 @@ int myClass::randNumGenerator(){
     updateLastOneHundredRecord(finalResult);
     updateStatisticData(finalResult);
 
+    node newNode;
+    newNode.timeStamp = std::chrono::system_clock::now().time_since_epoch()/std::chrono::milliseconds(1);
+    newNode.randNum = finalResult;
+    std::unique_lock<mutex> locker(mutexForQueue);
+    dataQueue.push(newNode);
+    locker.unlock();
+
     return finalResult;
 }
 
@@ -65,15 +72,33 @@ float myClass::percentageOf(int num){
     return (numCounter[num]*100)/totalNumGenerated;
 }
 
+bool myClass::isQueueEmpty(){
+      std::unique_lock<std::mutex> locker(mutexForQueue);
+      bool isQueueEmpty = dataQueue.empty();
+      locker.unlock();
+      return isQueueEmpty;
+}
+
 void myClass::readLastNumAndWriteToFile(string filename)
 {
+/*
     int lastNum = lastOneHundredNums.back();
 
      __int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+*/
+    std::unique_lock<std::mutex> locker(mutexForQueue);
+    if(!dataQueue.empty()){
+      node tmp = dataQueue.front();
+      dataQueue.pop();
 
-    ofstream myFile;
-    myFile.open(filename, std::ofstream::out | std::ofstream::app);
-    string outputContent = "timeStamp: "+to_string(now)+" lastNum: "+to_string(lastNum);
-    myFile<<outputContent<<endl;
-    myFile.close();
+      ofstream myFile;
+      myFile.open(filename, std::ofstream::out | std::ofstream::app);
+      string outputContent = "timeStamp: "+to_string(tmp.timeStamp)+" lastNum: "+to_string(tmp.randNum);
+      myFile<<outputContent<<endl;
+      myFile.close();
+      locker.unlock();
+    }
+    else{
+      locker.unlock();
+    }
 }

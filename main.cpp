@@ -1,39 +1,55 @@
 #include "myClass.h"
 using namespace std;
 
-int main(int argc, char** argv) {
+int producerThreadNum;
+std::mutex mutexForCountingThreadNum;
 
+int getProducerThreadNum()
+{
+  std::unique_lock<mutex> locker(mutexForCountingThreadNum);
+  int currentProducerThreadNum = producerThreadNum;
+  locker.unlock();
+
+  return currentProducerThreadNum;
+
+}
+void setProducerThreadNum(int diffThreadNum){
+  std::unique_lock<mutex> locker(mutexForCountingThreadNum);
+  producerThreadNum= producerThreadNum+diffThreadNum;
+  locker.unlock();
+}
+
+
+void producerFunction(myClass& MyClass, int number){
+  setProducerThreadNum(1);
+  for(int i=0;i<number;i++){
+    MyClass.randNumGenerator();
+  }
+  setProducerThreadNum(-1);
+
+}
+
+void consumerFunction(myClass& MyClass){
+    while(!MyClass.isQueueEmpty()|| getProducerThreadNum()!=0)
+    {
+      MyClass.readLastNumAndWriteToFile("log.txt");
+    }
+}
+
+
+int main(int argc, char** argv) {
+    producerThreadNum=0;
     myClass MyClass;
 
-    for(int i=0;i<50;i++){
-        MyClass.randNumGenerator();
-    }
-    cout<<"Show the last 100 result after the randNumGenerator is called less than 100 times----------------------------------"<<endl;
-    list<int> lastOneHundredNums = MyClass.getLastOneHundredRecord();
-    int index=0;
-    for(list<int>::iterator it = lastOneHundredNums.begin(); it!=lastOneHundredNums.end();++it){
-      cout<<"#"<<index<<":"<<*it<<endl;
-      index++;
-    }
+    std::thread producer(producerFunction,std::ref(MyClass),1000);
+    std::thread consumer(consumerFunction,std::ref(MyClass));
 
-    for(int i=0;i<10000;i++){
-        MyClass.randNumGenerator();
-    }
+    producer.join();
+    consumer.join();
 
-    cout<<"Show the last 100 result after the randNumGenerator is called over 100 times----------------------------------"<<endl;
-    lastOneHundredNums = MyClass.getLastOneHundredRecord();
-    index=0;
-    for(list<int>::iterator it = lastOneHundredNums.begin(); it!=lastOneHundredNums.end();++it){
-      cout<<"#"<<index<<":"<<*it<<endl;
-      index++;
-    }
-
-    cout<<"Show the percentage of each number----------------------------------"<<endl;
     for(int i=1;i<=5;i++){
-        cout<<i<<":"<<MyClass.percentageOf(i)<<endl;
+      cout<<"percentage of "<<i<<" : "<<MyClass.percentageOf(i)<<endl;
     }
 
-    cout<<"Test the method readLastNumAndWriteToFile()----------------------------------"<<endl;
-    MyClass.readLastNumAndWriteToFile("test.txt"); 
     return 0;
 }
